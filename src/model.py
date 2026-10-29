@@ -6,8 +6,8 @@ tensores 4D (Batch_Size, Channels, Height, Width).
 Autor: Zahir Jadil Rivera Cruz (codigo 022101099h) - Semilla: 99
 """
 
-import torch
-import torch.nn as nn
+import torch       # para crear el tensor 4D simulado y el contexto no_grad
+import torch.nn as nn  # capas de la red: Conv2d, ReLU, MaxPool2d, Linear, Dropout, etc.
 
 
 class CNNCifar10(nn.Module):
@@ -24,21 +24,31 @@ class CNNCifar10(nn.Module):
     def __init__(self, num_classes: int = 10):
         super().__init__()
 
-        # --- Bloque convolucional 1 ---
+        # Nota sobre los 3 bloques convolucionales: las 3 capas MaxPool2d usan
+        # EXACTAMENTE la misma configuracion (kernel_size=2, stride=2) a proposito,
+        # no por descuido. Cada MaxPool2d(2) reduce a la mitad el ancho y el alto
+        # del tensor (divide H y W entre 2), sin importar cuantos canales tenga
+        # la entrada en ese punto. Por eso 32x32 -> 16x16 -> 8x8 -> 4x4: tres
+        # reducciones iguales y sucesivas. Lo que SI cambia en cada bloque es el
+        # numero de canales de salida del Conv2d (32 -> 64 -> 128), que es lo que
+        # realmente aumenta la capacidad de la red para representar patrones mas
+        # complejos a medida que se profundiza.
+
+        # --- Bloque convolucional 1: aprende patrones simples (bordes, colores) ---
         self.block1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),  # 32x32 -> 16x16
         )
 
-        # --- Bloque convolucional 2 ---
+        # --- Bloque convolucional 2: combina los bordes en texturas/formas ---
         self.block2 = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),  # 16x16 -> 8x8
         )
 
-        # --- Bloque convolucional 3 (profundiza la jerarquia de features) ---
+        # --- Bloque convolucional 3: combina texturas/formas en partes del objeto ---
         self.block3 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
@@ -50,8 +60,13 @@ class CNNCifar10(nn.Module):
         self.flatten = nn.Flatten()
 
         # Tamano de entrada a la capa densa calculado para 128 canales x 4 x 4
+        # (128 * 4 * 4 = 2048 valores por imagen despues de aplanar).
         self._flat_features = 128 * 4 * 4
 
+        # Clasificador final: combina los 2048 valores en 256 "features" de alto
+        # nivel, aplica Dropout(0.5) para regularizar (apaga aleatoriamente la
+        # mitad de las neuronas en cada paso de entrenamiento) y finalmente
+        # produce 10 logits, uno por cada clase de CIFAR-10.
         self.classifier = nn.Sequential(
             nn.Linear(self._flat_features, 256),
             nn.ReLU(inplace=True),

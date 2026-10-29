@@ -24,9 +24,16 @@ Examen_IA_2U_Rivera_Zahir/
 ├── outputs/
 │   ├── sample_grid.png      # Cuadrícula de muestras del dataset
 │   ├── loss_accuracy.png   # Curvas de aprendizaje (Loss/Accuracy)
-│   └── confusion_matrix.png # Matriz de confusión del conjunto de prueba
+│   ├── confusion_matrix.png # Matriz de confusión del conjunto de prueba
+│   ├── demo_loss_accuracy.png # Curvas de la demo de 3 épocas del notebook
+│   └── capturas/             # Capturas de pantalla reales de la ejecución (consola y notebook)
 └── README.md
 ```
+
+> El notebook `notebooks/experiment.ipynb` fue ejecutado de forma completa (todas sus celdas
+> tienen número de ejecución y resultados guardados); las capturas de pantalla de esa
+> ejecución, así como de la corrida completa de `src/train.py` (15 épocas), se encuentran en
+> `outputs/capturas/` y están documentadas con su respectiva nota en el informe en Word.
 
 ## 3. Reproducibilidad (semilla individual)
 
